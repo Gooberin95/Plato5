@@ -1,0 +1,20 @@
+# Reflex
+.web
+.states
+assets/external/
+*.db
+*.py[cod]
+__pycache__/
+
+# Environments
+.venv/
+venv/
+env/
+.env
+
+# Tooling and OS
+.idea/
+.vscode/
+.DS_Store
+*.log
+uploaded_files/
