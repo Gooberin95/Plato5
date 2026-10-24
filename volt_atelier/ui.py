@@ -18,7 +18,7 @@ from volt_atelier.data import (
     GREEN,
     YELLOW,
 )
-from volt_atelier.state import StudioState
+from volt_atelier.mode import STATIC
 
 DISPLAY = "Unbounded, sans-serif"
 BODY = "Outfit, sans-serif"
@@ -123,7 +123,14 @@ def cta(label: str, href: str, ghost: bool = False) -> rx.Component:
 
 
 def nav_link(label: str, href: str) -> rx.Component:
-    active = StudioState.nav_path == href
+    if STATIC:
+        from volt_atelier.frontend import path_is
+
+        active = path_is(href)
+    else:
+        from volt_atelier.state import StudioState
+
+        active = StudioState.nav_path == href
     return rx.link(
         label,
         href=href,
@@ -323,7 +330,14 @@ def footer() -> rx.Component:
 
 def shell(*children) -> rx.Component:
     """Page root. The painting is applied once here and stays fixed while scrolling."""
+    background = rx.asset("background.jpg")
+    mounts: list = []
+    if STATIC:
+        from volt_atelier.frontend import CLIENT_VARS
+
+        mounts = list(CLIENT_VARS)
     return rx.box(
+        *mounts,
         topbar(),
         rx.el.main(
             *children,
@@ -336,7 +350,7 @@ def shell(*children) -> rx.Component:
             padding_bottom="7.6rem",
         ),
         pill_nav(),
-        background_image="url(/background.jpg)",
+        background_image=f"url({background})",
         background_size="cover",
         background_position="center",
         background_attachment="fixed",
@@ -439,32 +453,44 @@ def choice_row(options: list[tuple[str, str]], current, setter) -> rx.Component:
 
 
 def billing_toggle() -> rx.Component:
+    if STATIC:
+        from volt_atelier.frontend import show_monthly, show_yearly, yearly
+
+        billing = yearly.value
+        monthly_click = show_monthly()
+        yearly_click = show_yearly()
+    else:
+        from volt_atelier.state import StudioState
+
+        billing = StudioState.yearly
+        monthly_click = StudioState.show_monthly
+        yearly_click = StudioState.show_yearly
     return rx.flex(
         rx.el.button(
             "Monthly",
             type="button",
-            on_click=StudioState.show_monthly,
+            on_click=monthly_click,
             cursor="pointer",
             border_radius="999px",
             padding="0.5rem 0.95rem",
             font_weight="800",
             font_family=BODY,
-            background_color=rx.cond(StudioState.yearly, "transparent", LIME),
-            color=rx.cond(StudioState.yearly, INK, INK_DARK),
-            border=rx.cond(StudioState.yearly, f"1px solid {LINE}", "1px solid transparent"),
+            background_color=rx.cond(billing, "transparent", LIME),
+            color=rx.cond(billing, INK, INK_DARK),
+            border=rx.cond(billing, f"1px solid {LINE}", "1px solid transparent"),
         ),
         rx.el.button(
             "Yearly",
             type="button",
-            on_click=StudioState.show_yearly,
+            on_click=yearly_click,
             cursor="pointer",
             border_radius="999px",
             padding="0.5rem 0.95rem",
             font_weight="800",
             font_family=BODY,
-            background_color=rx.cond(StudioState.yearly, LIME, "transparent"),
-            color=rx.cond(StudioState.yearly, INK_DARK, INK),
-            border=rx.cond(StudioState.yearly, "1px solid transparent", f"1px solid {LINE}"),
+            background_color=rx.cond(billing, LIME, "transparent"),
+            color=rx.cond(billing, INK_DARK, INK),
+            border=rx.cond(billing, "1px solid transparent", f"1px solid {LINE}"),
         ),
         rx.el.span(
             "Save up to $528 a year",
@@ -480,9 +506,17 @@ def billing_toggle() -> rx.Component:
 
 
 def price_figure(monthly: int, yearly_month: int, size: str = "3rem") -> rx.Component:
+    if STATIC:
+        from volt_atelier.frontend import yearly
+
+        billing = yearly.value
+    else:
+        from volt_atelier.state import StudioState
+
+        billing = StudioState.yearly
     return rx.flex(
         rx.el.span(
-            rx.cond(StudioState.yearly, f"${yearly_month}", f"${monthly}"),
+            rx.cond(billing, f"${yearly_month}", f"${monthly}"),
             font_family=DISPLAY,
             font_weight="800",
             font_size=size,
@@ -490,7 +524,7 @@ def price_figure(monthly: int, yearly_month: int, size: str = "3rem") -> rx.Comp
             line_height="0.9",
         ),
         rx.el.span(
-            rx.cond(StudioState.yearly, "/mo, billed yearly", "/month"),
+            rx.cond(billing, "/mo, billed yearly", "/month"),
             color=MUTED,
             font_size="0.92rem",
             padding_bottom="0.35rem",

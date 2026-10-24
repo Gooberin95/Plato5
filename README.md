@@ -53,10 +53,20 @@ The first `reflex run` downloads Reflex's frontend toolchain (Bun) and compiles 
 
 Stop the app with Ctrl+C.
 
+`reflex run` serves the app at `/` with the Python backend. The published site uses a different base path, described below.
+
+## GitHub Pages
+
+The live site is [https://gooberin95.github.io/Plato5/](https://gooberin95.github.io/Plato5/).
+
+GitHub Pages only hosts static files, so it cannot run the Reflex backend or its websocket. A push to `main` runs `.github/workflows/pages.yml`, which installs Python 3.14.4, exports the frontend with `reflex export --frontend-only --no-zip`, and deploys that folder with GitHub's Pages actions. The export sets `REFLEX_FRONTEND_PATH=/Plato5` so scripts, styles, fonts, and `background.jpg` load under the project subpath. That variable also switches the pages to browser-side filters, toggles, and the body lab, and compiles the app with state disabled so the page does not open a backend socket. Local `reflex run` does not set the variable, so it stays at `/` and keeps Reflex state.
+
+You can also start a deploy by hand from the Actions tab with "Deploy GitHub Pages".
+
 ## What's in the site
 
 - **Home** — hero, five training lanes, house rules, testimonials, and a plan preview.
-- **Week** (`/schedule`) — a weekly class grid you can filter by lane (Reflex state). Open a session for the room, the cap, and the plan. Links like `/schedule?lane=Ride` preselect a lane.
+- **Week** (`/schedule`) — a weekly class grid you can filter by lane. Open a session for the room, the cap, and the plan. Links like `/schedule?lane=Ride` preselect a lane.
 - **Plans** (`/membership`) — Spark, Current, and Kiln, with a monthly/yearly toggle, an FAQ, and a trial request that stays in the browser session.
 - **Coaches** (`/coaches`) — six profiles. Select one to read how they coach.
 - **Lab** (`/lab`) — BMI scale and a calorie target (Mifflin–St Jeor) from the same inputs, in metric or imperial.
@@ -74,9 +84,13 @@ assets/
   styles.css
   favicon.svg
   fonts/
+.github/workflows/pages.yml
+.nojekyll
 volt_atelier/
   volt_atelier.py
   state.py
+  frontend.py
+  labmath.py
   data.py
   ui.py
   pages/
