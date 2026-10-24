@@ -19,10 +19,20 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    # ubuntu-latest is 26.04, which has no Python 3.14.4 build in actions/setup-python.
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Point Pages at GitHub Actions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method PUT -H "Accept: application/vnd.github+json" \
+            "/repos/${{ github.repository }}/pages" \
+            -f build_type=workflow
+          gh api "/repos/${{ github.repository }}/pages" --jq '{build_type,source,status}'
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
