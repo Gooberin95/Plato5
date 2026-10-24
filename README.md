@@ -63,6 +63,8 @@ GitHub Pages only hosts static files, so it cannot run the Reflex backend or its
 
 You can also start a deploy by hand from the Actions tab with "Deploy GitHub Pages".
 
+The site source has to be GitHub Actions. While it stays on "Deploy from a branch", a push to `main` publishes the repository files and replaces this export. Under Settings, Pages, Build and deployment, choose Source: GitHub Actions.
+
 ## Azure App Service
 
 `.github/workflows/deploy.yml` builds the same app for Azure App Service. That build does not set `REFLEX_FRONTEND_PATH`, so the site is served at `/` with the Reflex backend and its websocket. Staging and production deploys stay skipped until the repository variable `AZURE_DEPLOY_ENABLED` is `true`. The setup steps are in [DEPLOY.md](DEPLOY.md).
